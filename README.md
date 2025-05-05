@@ -28,30 +28,25 @@ Acronyms is a modern iOS app that lets users search for the full forms of abbrev
 
 ## 📲 Installation
 
-1. Clone this repository:
+1. Clone the repository:
    ```bash
    git clone https://github.com/rkamra-1404/Acronyms.git
-Open the project in Xcode:
+2. Open the project in Xcode:
+     open Acronyms.xcodeproj
+3. Build and run the project:
+    Select a simulator or connected device and click Run in Xcode.
 
-bash
-Copy
-Edit
-cd Acronyms
-open Acronyms.xcodeproj
-Build and run the app on a simulator or device running iOS 14.0+
-
-📁 Project Structure
-bash
-Copy
-Edit
+## Project Structure
+ ```bash
 Acronyms/
 ├── Model/         # Data models
 ├── View/          # SwiftUI views
 ├── ViewModel/     # ViewModels for UI logic
 ├── Network/       # API service layer
 └── Resources/     # Assets and app configuration
+```
 
-🔮 Future Improvements
+## Future Improvements
 ✅ Add XCTest-based unit testing
 
 ✅ Include UI snapshots for visual validation
@@ -66,7 +61,6 @@ Acronyms/
 This project is licensed under the MIT License. See the LICENSE file for more information.
 
 🙏 Acknowledgements
-Acronym API – Public acronym lookup API
-
 Apple Developer Documentation – For SwiftUI and Combine resources
 
+Made with ❤️ by Rahul Kamra
