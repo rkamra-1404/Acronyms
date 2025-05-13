@@ -1,0 +1,48 @@
+//
+//  NetworkClient.swift
+//  Acronyms
+//
+//  Created by Rahul Kamra on 20/07/22.
+//
+
+import Foundation
+import UIKit
+
+protocol Request {
+    associatedtype ResponseType: Decodable
+    func build() -> URLRequest
+}
+
+enum NetworkError: Error {
+    case invalidURL
+    case requestFailed(Error)
+    case noData
+    case decodingError(Error)
+}
+
+protocol NetworkClientProtocol {
+    func send<T: Request>(_ request: T, completion: @escaping (Result<T.ResponseType, NetworkError>) -> Void)
+}
+class NetworkClient : NetworkClientProtocol {
+    private let session = URLSession.shared
+
+    func send<T: Request>(_ request: T, completion: @escaping (Result<T.ResponseType, NetworkError>) -> Void) {
+        let urlRequest = request.build()
+
+        session.dataTask(with: urlRequest) { data, _, error in
+            if let error = error {
+                return completion(.failure(.requestFailed(error)))
+            }
+            guard let data = data else {
+                return completion(.failure(.noData))
+            }
+
+            do {
+                let responseObject = try JSONDecoder().decode(T.ResponseType.self, from: data)
+                completion(.success(responseObject))
+            } catch {
+                completion(.failure(.decodingError(error)))
+            }
+        }.resume()
+    }
+}
