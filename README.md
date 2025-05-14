@@ -19,7 +19,7 @@ Acronyms is a modern iOS app that lets users search for the full forms of abbrev
 ## 🧰 Tech Stack
 
 - **Language**: Swift
-- **UI Framework**: SwiftUI
+- **UI Framework**: UIKit
 - **Reactive Programming**: Combine
 - **Architecture**: MVVM
 - **Networking**: URLSession
