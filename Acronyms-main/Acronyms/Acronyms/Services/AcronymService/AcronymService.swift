@@ -8,18 +8,18 @@
 import Foundation
 
 protocol AcronymServiceProtocol {
-    func fetchAcronyms(for query: String, completion: @escaping (Result<[AcronymsData], NetworkError>) -> Void)
+    func fetchAcronyms(for query: String) async throws -> [AcronymsData]
 }
 
-class AcronymService : AcronymServiceProtocol {
+struct AcronymService : AcronymServiceProtocol {
     let networkClient: NetworkClientProtocol
     
     init(client: NetworkClientProtocol = NetworkClient()) {
         self.networkClient = client
     }
     
-    func fetchAcronyms(for query: String, completion: @escaping (Result<[AcronymsData], NetworkError>) -> Void) {
+    func fetchAcronyms(for query: String) async throws -> [AcronymsData] {
         let request = GetAcronymRequest(query: query)
-        networkClient.send(request, completion: completion)
+        return try await networkClient.get(request)
     }
 }
