@@ -10,7 +10,7 @@ Acronyms is a modern iOS app that lets users search for the full forms of abbrev
 
 - 🔍 Real-time acronym search
 - ⚙️ Combine-based API integration
-- 💡 SwiftUI-powered UI
+- 💡 UIKit-powered UI
 - 📦 Clean MVVM structure
 - ✨ Zero third-party dependencies
 
