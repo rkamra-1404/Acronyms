@@ -22,6 +22,7 @@ enum NetworkError: Error {
 
 protocol NetworkClientProtocol {
     func send<T: Request>(_ request: T, completion: @escaping (Result<T.ResponseType, NetworkError>) -> Void)
+    func get<T: Request>(_ request: T) async throws -> T.ResponseType
 }
 class NetworkClient : NetworkClientProtocol {
     private let session = URLSession.shared
@@ -44,5 +45,11 @@ class NetworkClient : NetworkClientProtocol {
                 completion(.failure(.decodingError(error)))
             }
         }.resume()
+    }
+
+    func get<T: Request>(_ request: T) async throws -> T.ResponseType {
+        let urlRequest = request.build()
+        let (data, _) = try await session.data(for: urlRequest)
+        return try JSONDecoder().decode(T.ResponseType.self, from: data)
     }
 }
