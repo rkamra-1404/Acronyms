@@ -21,14 +21,13 @@ class AcronymsViewModel: AcronymViewModelProtocol {
     let service: AcronymServiceProtocol
     init(service: AcronymServiceProtocol = AcronymService()) {
         self.service = service
-        setUpBindings()
     }
     @Published private(set) var acronyms: [AcronymsModel] = []
     @Published private(set) var isLoading: Bool = false
     @Published private(set) var error: String?
     private var cancellables = Set<AnyCancellable>()
-    private var querySubject = PassthroughSubject<String, Never>()
     private var debounceTime: TimeInterval = 0.5
+    private var debounceTask: Task<Void, Never>? = nil
 
     var changePublisher: AnyPublisher<Void, Never> {
         Publishers.MergeMany(
@@ -38,19 +37,17 @@ class AcronymsViewModel: AcronymViewModelProtocol {
         )
         .eraseToAnyPublisher()
     }
-
-    func setUpBindings() {
-        querySubject
-            .debounce(for: .seconds(debounceTime), scheduler: DispatchQueue.main)
-            .removeDuplicates()
-            .sink { [weak self] query in
-                self?.performSearch(for: query)
-            }
-            .store(in: &cancellables)
-    }
-
     func triggerSearch(for query: String) {
-        querySubject.send(query)
+        debounceTask?.cancel()
+        debounceTask = Task {
+            do {
+                try await Task.sleep(nanoseconds: UInt64(debounceTime * 1_000_000_000))
+                guard !Task.isCancelled else { return }
+                await performSearch(for: query)
+            } catch {
+                print("Debounce task was cancelled or an error occurred: \(error)")
+            }
+        } 
     }
 
     func resetSearch() {
@@ -58,7 +55,7 @@ class AcronymsViewModel: AcronymViewModelProtocol {
         error = nil
     }
 
-    func performSearch(for query: String) {
+   func performSearch(for query: String) async {
         let trimmedQuery = query.trimmingCharacters(in: .whitespaces)
         // Check if the trimmed query is empty before proceeding
         error = nil
@@ -68,24 +65,20 @@ class AcronymsViewModel: AcronymViewModelProtocol {
             return
         }
         isLoading = true
-        service.fetchAcronyms(for: query) { result in
-            DispatchQueue.main.async {
-                self.isLoading = false
-                switch result {
-                case .success(let response):
-                    guard let firstResponse = response.first else {
-                            // Handle case where response is empty
-                            self.error = "No acronyms found."
-                            self.acronyms = []
-                            return
-                        }
-
-                        // Safely unwrap and update the acronyms
-                        self.acronyms = firstResponse.fullFormArray
-                case .failure(let error):
-                    self.error = error.localizedDescription
+        do {
+            let response = try await service.fetchAcronyms(for: query)
+            guard let firstResponse = response.first else {
+                    // Handle case where response is empty
+                    self.error = "No acronyms found."
+                    self.acronyms = []
+                    return
                 }
-            }
+
+                // Safely unwrap and update the acronyms
+                self.acronyms = firstResponse.fullFormArray
+        } catch {
+            self.error = error.localizedDescription
         }
+        self.isLoading = false
     }
 }
